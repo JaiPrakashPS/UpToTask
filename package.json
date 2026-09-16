@@ -1,0 +1,16 @@
+{
+  "name": "uptotask",
+  "version": "1.0.0",
+  "description": "UpToTask - Simple Task Management Application (MERN Stack)",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "start": "cd server && npm start",
+    "build:client": "cd client && npm run build",
+    "test:server": "cd server && node test-api.js"
+  },
+  "keywords": ["mern", "task-management", "react", "express", "mongodb"],
+  "author": "",
+  "license": "ISC"
+}
