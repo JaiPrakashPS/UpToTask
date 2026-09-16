@@ -57,7 +57,6 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
               padding: '1px 6px',
               borderRadius: '3px',
             }}
-            title="Gmail reminder will be pushed 1 day before deadline"
           >
             Due in 1 Day
           </span>

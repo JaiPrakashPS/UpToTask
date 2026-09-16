@@ -174,10 +174,6 @@ const runTests = async () => {
     const statsRes = await request('GET', '/api/tasks/stats', null, tokenUser1);
     console.log('[Test 11b] Task Statistics Endpoint:', statsRes.status === 200 && statsRes.body.stats.total === 1 ? 'PASS' : 'FAIL');
 
-    // 11c. Reminder check endpoint (tests 1-day email reminder trigger)
-    const reminderRes = await request('POST', '/api/tasks/check-reminders', {}, tokenUser1);
-    console.log('[Test 11c] Reminder Check Trigger (1-day notice):', reminderRes.status === 200 && reminderRes.body.success ? 'PASS' : 'FAIL');
-
     // 12. Create User 2 to test data isolation
     const uniqueEmail2 = `user2_${Date.now()}@example.com`;
     const signupRes2 = await request('POST', '/api/auth/signup', {

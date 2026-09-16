@@ -124,9 +124,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
             />
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
-              You will receive an automated Gmail reminder 1 day before this deadline.
-            </span>
           </div>
 
           <div className="modal-footer">

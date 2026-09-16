@@ -63,7 +63,6 @@ const createTask = async (req, res, next) => {
       ...(taskDuration && { duration: taskDuration }),
       status: taskStatus,
       dueDate: dueDate ? new Date(dueDate) : null,
-      reminderSent: false,
     });
 
     return res.status(201).json({
@@ -192,11 +191,7 @@ const updateTask = async (req, res, next) => {
     }
 
     if (dueDate !== undefined) {
-      const parsedDueDate = dueDate ? new Date(dueDate) : null;
-      if (task.dueDate?.toString() !== parsedDueDate?.toString()) {
-        task.dueDate = parsedDueDate;
-        task.reminderSent = false; // Reset reminder on new due date
-      }
+      task.dueDate = dueDate ? new Date(dueDate) : null;
     }
 
     if (duration !== undefined && typeof duration === 'object') {
@@ -335,19 +330,6 @@ const getTaskStats = async (req, res, next) => {
   }
 };
 
-// @desc    Trigger reminder check
-// @route   POST /api/tasks/check-reminders
-// @access  Private
-const triggerReminderCheck = async (req, res, next) => {
-  try {
-    const { checkRemindersNow } = require('../services/reminderService');
-    const result = await checkRemindersNow();
-    return res.status(200).json({ success: true, ...result });
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   createTask,
   getTasks,
@@ -356,5 +338,5 @@ module.exports = {
   deleteTask,
   updateStatus,
   getTaskStats,
-  triggerReminderCheck,
 };
+
