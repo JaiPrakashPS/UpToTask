@@ -12,8 +12,6 @@
 
 - **Live Application**: [https://up-to-task-4t5w.vercel.app](https://up-to-task-4t5w.vercel.app)
 - **GitHub Repository**: [https://github.com/JaiPrakashPS/UpToTask](https://github.com/JaiPrakashPS/UpToTask)
-- **User & Technical Guide**: [`DOCUMENTATION.md`](./DOCUMENTATION.md)
-- **Word Document Manual**: [`UpToTask_Documentation.docx`](./UpToTask_Documentation.docx)
 
 ---
 
