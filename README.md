@@ -1,8 +1,19 @@
 # UpToTask
 
-> Simple, minimal, and secure personal task management application built with the MERN stack.
+> A minimalist, distraction-free personal task management web application built on the MERN stack.
 
-UpToTask focuses on a clean, minimal black-and-white UI with essential task-management functionality, JWT and Google OAuth authentication, progress tracking, duration tracking, and status workflows.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-up--to--task--4t5w.vercel.app-black?style=for-the-badge&logo=vercel)](https://up-to-task-4t5w.vercel.app)
+[![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20Express%20%7C%20MongoDB-black?style=for-the-badge)](https://github.com/JaiPrakashPS/UpToTask)
+[![License: ISC](https://img.shields.io/badge/License-ISC-black?style=for-the-badge)](LICENSE)
+
+---
+
+## Live Links & Repositories
+
+- **Live Application**: [https://up-to-task-4t5w.vercel.app](https://up-to-task-4t5w.vercel.app)
+- **GitHub Repository**: [https://github.com/JaiPrakashPS/UpToTask](https://github.com/JaiPrakashPS/UpToTask)
+- **User & Technical Guide**: [`DOCUMENTATION.md`](./DOCUMENTATION.md)
+- **Word Document Manual**: [`UpToTask_Documentation.docx`](./UpToTask_Documentation.docx)
 
 ---
 
@@ -10,252 +21,236 @@ UpToTask focuses on a clean, minimal black-and-white UI with essential task-mana
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React.js (Vite), React Router v7, Axios, Lucide React, Google OAuth |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB (Local / MongoDB Atlas Cluster via Mongoose) |
-| **Authentication** | JWT (JSON Web Tokens) & Google OAuth 2.0 |
-| **Styling** | Minimalist Black & White CSS (#000000, #FFFFFF, #666666, #DDDDDD) |
-| **Version Control** | Git |
+| **Frontend** | React 18 (Vite), React Router v7, Axios, Lucide React, `@react-oauth/google` |
+| **Backend** | Node.js, Express.js (REST API & Vercel Serverless) |
+| **Database** | MongoDB Atlas (Cloud Cluster via Mongoose ODM) |
+| **Authentication** | JWT (JSON Web Tokens) & Google OAuth 2.0 (Google Identity Services) |
+| **Styling** | High-contrast Minimalist Black & White CSS (`#000000`, `#FFFFFF`, `#666666`, `#DDDDDD`) |
+| **Hosting** | Vercel (CI/CD automated deployment) |
 
 ---
 
-## Features (Functional Requirements)
+## Key Features
 
-- **FR-01: User Signup**: Register with Name, Email, Password, and Confirm Password with comprehensive validation.
-- **FR-02: User Login**: Secure login with bcrypt-hashed passwords and JWT generation.
-- **FR-03: Google Authentication**: One-click Google Sign-In with automated user profile creation/retrieval.
-- **FR-04: User Logout**: Single-click session termination and local storage cleanup.
-- **FR-05: Create Task**: Create tasks with Task Name, Description, Progress (0–100%), Duration (value + unit: Minutes, Hours, Days), and Status (Planned, In Progress, Complete).
-- **FR-06: View Tasks**: View all tasks belonging strictly to the logged-in user in a responsive layout with ASCII block progress indicators (`████████████░░░░░░░░`).
-- **FR-07: Edit Task**: Update task title, description, duration, progress, and status with immediate feedback.
-- **FR-08: Delete Task**: Modal confirmation dialog ("Are you sure you want to delete this task?") before permanent database removal.
-- **FR-09: Update Task Progress**: Track progress from 0% to 100% with dual slider/input control and progress bar.
-- **FR-10: Update Task Status**: Switch between Planned, In Progress, and Complete. Marking status as Complete automatically syncs progress to 100%.
-- **FR-11: MongoDB Persistence**: Fully persistent data stored in MongoDB using Mongoose schemas.
-- **FR-12: Data Isolation & Security**: Tasks are strictly scoped to the authenticated user's ID; access/modification attempts across users are rejected with HTTP 403 Forbidden.
+### 1. Authentication & Security
+- **Dual Authentication**:
+  - **Email & Password**: Secure registration and login with bcrypt password hashing and JWT token issuance.
+  - **Google One-Click Sign-In**: Powered by `@react-oauth/google` with automatic account creation and token verification.
+- **Session Protection**: Route guards (`ProtectedRoute`) redirect unauthenticated users to `/login`.
+- **Strict Data Isolation**: Tasks are strictly isolated per user ID (`userId`). Users cannot view, modify, or delete tasks belonging to others.
+
+### 2. Task Management (CRUD)
+- **Create Task**: Create tasks with Task Name, Description, Status (`Planned`, `In Progress`, `Complete`), and optional Due Date.
+- **Edit Task**: In-place modal to modify title, description, status, or due date.
+- **Delete Task**: Safe deletion flow with a confirmation dialog before permanent removal.
+- **Inline Status Toggle**: Switch task status instantly via the badge dropdown on each task card.
+- **Auto-Synchronized Progress**:
+  - `Planned` $\rightarrow$ **0%**
+  - `In Progress` $\rightarrow$ **50%**
+  - `Complete` $\rightarrow$ **100%**
+
+### 3. Productivity & Organization
+- **Real-Time Search**: Instant search bar filtering tasks dynamically by title and description with a one-click clear button.
+- **Status Filter Tabs**: Filter tasks quickly across **All**, **Planned**, **In Progress**, and **Complete** with live item count badges.
+- **Due Date Indicator**: Visual calendar badge displaying formatted due dates on task cards.
+
+### 4. User Profile & Analytics (`/profile`)
+- **User Info Card**: Displays name, registered email address, and account creation date.
+- **Productivity Dashboard**: Real-time task statistics including:
+  - Total tasks created
+  - Tasks completed
+  - Tasks in progress
+  - Tasks planned
+  - Visual overall completion rate progress bar (%)
 
 ---
 
 ## Project Structure
 
 ```text
-uptotask/
-├── client/                     # Vite + React.js SPA
+UpToTask/
+├── client/                               # Vite + React 18 Frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx           # Clean header with user info & logout
-│   │   │   ├── TaskCard.jsx         # Card with progress bar, status, duration, actions
-│   │   │   ├── TaskModal.jsx        # Unified Create & Edit Task modal dialog
-│   │   │   ├── DeleteModal.jsx      # Confirmation modal for task deletion
-│   │   │   └── ProtectedRoute.jsx   # Route guard for authenticated pages
+│   │   │   ├── Navbar.jsx                # Header with navigation, user avatar, and logout
+│   │   │   ├── TaskCard.jsx              # Task item card with status dropdown & action buttons
+│   │   │   ├── TaskModal.jsx             # Unified Create & Edit Task modal
+│   │   │   ├── DeleteModal.jsx           # Safe confirmation modal for task deletion
+│   │   │   └── ProtectedRoute.jsx        # Authentication route guard
 │   │   ├── context/
-│   │   │   └── AuthContext.jsx      # Authentication state (token, user, login, logout)
+│   │   │   └── AuthContext.jsx           # Global authentication state & handlers
 │   │   ├── pages/
-│   │   │   ├── Login.jsx            # Email/Password + Google OAuth login
-│   │   │   ├── Signup.jsx           # Name, Email, Password, Confirm Password
-│   │   │   └── Dashboard.jsx        # Task list, filters, empty state, CRUD modals
+│   │   │   ├── Login.jsx                 # Email/Password + Google OAuth login
+│   │   │   ├── Signup.jsx                # New user registration
+│   │   │   ├── Dashboard.jsx             # Task list, search, filters, CRUD modals
+│   │   │   └── Profile.jsx               # User profile & task productivity metrics
 │   │   ├── services/
-│   │   │   └── api.js               # Axios instance with auth interceptors
-│   │   ├── App.jsx                  # React Router setup
-│   │   ├── main.jsx                 # App root with GoogleOAuthProvider wrapper
-│   │   └── index.css                # Minimalist Black/White/Gray styling
+│   │   │   └── api.js                    # Axios instance with JWT interceptor & auto-URL normalization
+│   │   ├── App.jsx                       # React Router v7 routes
+│   │   ├── main.jsx                      # App root with GoogleOAuthProvider & canonical domain redirect
+│   │   └── index.css                     # Monochrome styling and design tokens
 │   ├── index.html
 │   ├── vite.config.js
+│   ├── vercel.json                       # Client SPA routing rewrite configuration
 │   └── package.json
 │
-├── server/                     # Node.js + Express.js REST API
+├── server/                               # Node.js + Express REST API
 │   ├── config/
-│   │   └── db.js                    # Mongoose MongoDB connection
+│   │   └── db.js                         # MongoDB Atlas Mongoose connection with caching
 │   ├── controllers/
-│   │   ├── authController.js        # Signup, Login, Google OAuth, Me
-│   │   └── taskController.js        # Create, List, Get, Update, Delete, Patch Status
+│   │   ├── authController.js             # Signup, Login, Google OAuth, Me
+│   │   └── taskController.js             # Task CRUD, status updates, and stats endpoint
 │   ├── middleware/
-│   │   ├── authMiddleware.js        # JWT verification middleware
-│   │   └── errorMiddleware.js       # Centralized error handler
+│   │   ├── authMiddleware.js             # JWT bearer verification middleware
+│   │   └── errorMiddleware.js            # Centralized error handler
 │   ├── models/
-│   │   ├── User.js                  # User schema (name, email, password, googleId)
-│   │   └── Task.js                  # Task schema (taskName, description, progress, duration, status, userId)
+│   │   ├── User.js                       # User schema (name, email, password, googleId)
+│   │   └── Task.js                       # Task schema (taskName, description, progress, status, dueDate, userId)
 │   ├── routes/
-│   │   ├── authRoutes.js            # /api/auth/* endpoints
-│   │   └── taskRoutes.js            # /api/tasks/* endpoints
-│   ├── server.js                    # Express app entrypoint & middleware
-│   ├── test-api.js                  # Automated test suite for all endpoints
+│   │   ├── authRoutes.js                 # /api/auth/* routes
+│   │   └── taskRoutes.js                 # /api/tasks/* routes
+│   ├── server.js                         # Express server entrypoint
+│   ├── vercel.json                       # Vercel serverless deployment configuration
+│   ├── test-api.js                       # 17 automated end-to-end API tests
 │   ├── .env.example
 │   └── package.json
 │
-├── .gitignore
-├── README.md
+├── DOCUMENTATION.md                      # Comprehensive user and technical documentation
+├── UpToTask_Documentation.docx           # Official Word document manual
+├── README.md                             # Project overview and setup guide
 └── package.json
 ```
 
 ---
 
-## Environment Variables
+## Environment Configuration
 
 ### Backend (`server/.env`)
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://127.0.0.1:27017/uptotask
-JWT_SECRET=uptotask_super_secret_jwt_key_2026
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?appName=Cluster0
+JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=7d
-GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 CLIENT_URL=http://localhost:5173
 ```
-
-> **Note**: For MongoDB Atlas, replace `MONGODB_URI` with your connection string:
-> `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/uptotask?retryWrites=true&w=majority`
 
 ### Frontend (`client/.env`)
 
 ```env
 VITE_API_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
+VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 ```
+
+> **Google OAuth Configuration**:
+> In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), add these to **Authorized JavaScript origins**:
+> - `http://localhost:5173` (for local development)
+> - `https://up-to-task-4t5w.vercel.app` (for production)
+>
+> *(Note for Brave Browser users: ensure Brave Shields allow third-party Google authentication buttons under `brave://settings/socialBlocking`)*.
 
 ---
 
-## Quick Start
+## Quick Start (Local Development)
 
-### 1. Install Dependencies
-
-In the root directory, you can run:
-
+### 1. Clone the Repository
 ```bash
-# Install server dependencies
+git clone https://github.com/JaiPrakashPS/UpToTask.git
+cd UpToTask
+```
+
+### 2. Install Dependencies
+```bash
+# Install backend dependencies
 cd server
 npm install
 
-# Install client dependencies
+# Install frontend dependencies
 cd ../client
 npm install
 ```
 
-### 2. Start the Backend Server
-
+### 3. Start Backend Server
 ```bash
-cd server
+cd ../server
 npm run dev
-# or npm start
+# Server runs at http://localhost:5000
 ```
-The server will start on `http://localhost:5000` and connect to MongoDB.
 
-### 3. Start the Frontend Application
-
+### 4. Start Frontend Application
 ```bash
-cd client
+cd ../client
 npm run dev
+# Application opens at http://localhost:5173
 ```
-Open `http://localhost:5173` in your browser.
 
 ---
 
-## Running the Automated Test Suite
+## Automated Testing
 
-A complete test suite covering signup, validation, login, duplicate detection, Google authentication, protected routes, task CRUD, status auto-sync, and cross-user data isolation is included:
+The backend includes an automated test suite verifying all 17 critical endpoints and security guarantees:
 
 ```bash
 cd server
 node test-api.js
 ```
 
+**Test Coverage Includes:**
+- User registration and password validation
+- Duplicate email prevention
+- Password hashing and login verification
+- JWT generation and `/api/auth/me` protected retrieval
+- Google OAuth token validation
+- Task CRUD operations (Create, Read, Update, Delete)
+- Status auto-sync with progress percentages (0%, 50%, 100%)
+- Cross-user data isolation (rejection of unauthorized access with HTTP 403)
+- Real-time productivity metrics (`/api/tasks/stats`)
+
 ---
 
 ## REST API Specification
 
-### Authentication
+### Authentication Endpoints
 
-#### Signup
-- **Endpoint**: `POST /api/auth/signup`
-- **Body**:
-  ```json
-  {
-    "name": "Jai Prakash",
-    "email": "jai@example.com",
-    "password": "password123",
-    "confirmPassword": "password123"
-  }
-  ```
-- **Response**: `201 Created` with JWT token and user info.
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/signup` | Register new user with name, email, password | No |
+| `POST` | `/api/auth/login` | Authenticate with email & password | No |
+| `POST` | `/api/auth/google` | Verify Google ID token & sign in / sign up | No |
+| `GET` | `/api/auth/me` | Fetch currently authenticated user profile | Yes (Bearer Token) |
 
-#### Login
-- **Endpoint**: `POST /api/auth/login`
-- **Body**:
-  ```json
-  {
-    "email": "jai@example.com",
-    "password": "password123"
-  }
-  ```
-- **Response**: `200 OK` with JWT token and user info.
+### Task Endpoints
 
-#### Google OAuth
-- **Endpoint**: `POST /api/auth/google`
-- **Body**:
-  ```json
-  {
-    "credential": "<google_id_token>"
-  }
-  ```
-- **Response**: `200 OK` with JWT token and user info.
-
-#### Get Current User
-- **Endpoint**: `GET /api/auth/me`
-- **Headers**: `Authorization: Bearer <token>`
-- **Response**: `200 OK` with user details.
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/tasks` | Get all tasks for authenticated user | Yes (Bearer Token) |
+| `POST` | `/api/tasks` | Create a new task | Yes (Bearer Token) |
+| `GET` | `/api/tasks/:id` | Get single task by ID (owner only) | Yes (Bearer Token) |
+| `PUT` | `/api/tasks/:id` | Update task details (owner only) | Yes (Bearer Token) |
+| `DELETE`| `/api/tasks/:id` | Delete task permanently (owner only) | Yes (Bearer Token) |
+| `PATCH` | `/api/tasks/:id/status`| Update status & auto-sync progress | Yes (Bearer Token) |
+| `GET` | `/api/tasks/stats` | Retrieve user productivity statistics | Yes (Bearer Token) |
 
 ---
 
-### Tasks
+## Deployment (Vercel)
 
-All task endpoints require `Authorization: Bearer <token>`.
+Both the frontend and backend are configured for zero-configuration deployment on **Vercel**:
+- **Frontend**: Configured with `client/vercel.json` for Single Page Application (SPA) routing rewrites.
+- **Backend**: Configured with `server/vercel.json` as an Express serverless function with MongoDB connection pooling.
+- **Canonical Domain Protection**: The frontend automatically routes all preview deployments to the canonical production URL to maintain seamless Google OAuth origin compliance.
 
-#### Create Task
-- **Endpoint**: `POST /api/tasks`
-- **Body**:
-  ```json
-  {
-    "taskName": "Complete MERN Project",
-    "description": "Build and deploy the task management application.",
-    "progress": 60,
-    "duration": {
-      "value": 3,
-      "unit": "Hours"
-    },
-    "status": "In Progress"
-  }
-  ```
-- **Response**: `201 Created`
+---
 
-#### Get All Tasks
-- **Endpoint**: `GET /api/tasks`
-- **Response**: `200 OK` with array of tasks belonging to the authenticated user.
+## Documentation
 
-#### Get Single Task
-- **Endpoint**: `GET /api/tasks/:id`
-- **Response**: `200 OK` with task details. Rejects non-owners with `403 Forbidden`.
-
-#### Update Task
-- **Endpoint**: `PUT /api/tasks/:id`
-- **Body**: Updates `taskName`, `description`, `progress`, `duration`, `status`.
-- **Response**: `200 OK`
-
-#### Delete Task
-- **Endpoint**: `DELETE /api/tasks/:id`
-- **Response**: `200 OK`
-
-#### Update Task Status
-- **Endpoint**: `PATCH /api/tasks/:id/status`
-- **Body**:
-  ```json
-  {
-    "status": "Complete"
-  }
-  ```
-- **Response**: `200 OK` (automatically sets `progress: 100` when marked Complete).
+Full documentation is available in two formats within the repository:
+1. **Markdown**: [`DOCUMENTATION.md`](./DOCUMENTATION.md)
+2. **Microsoft Word**: [`UpToTask_Documentation.docx`](./UpToTask_Documentation.docx)
 
 ---
 
 ## License
 
-ISC
+This project is licensed under the **ISC License**.
