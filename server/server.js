@@ -46,8 +46,11 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
+const { initReminderCron } = require('./services/reminderService');
+
 const server = app.listen(PORT, () => {
   console.log(`[UpToTask Server] Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  initReminderCron();
 });
 
 // Handle unhandled promise rejections

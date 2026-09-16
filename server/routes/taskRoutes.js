@@ -8,6 +8,7 @@ const {
   deleteTask,
   updateStatus,
   getTaskStats,
+  triggerReminderCheck,
 } = require('../controllers/taskController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -19,6 +20,7 @@ router.route('/')
   .get(getTasks);
 
 router.get('/stats', getTaskStats);
+router.post('/check-reminders', triggerReminderCheck);
 
 router.route('/:id')
   .get(getTaskById)

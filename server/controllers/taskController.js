@@ -5,7 +5,7 @@ const Task = require('../models/Task');
 // @access  Private
 const createTask = async (req, res, next) => {
   try {
-    const { taskName, description, progress, duration, status } = req.body;
+    const { taskName, description, progress, duration, status, dueDate } = req.body;
 
     if (!taskName || !taskName.trim()) {
       return res.status(400).json({ success: false, message: 'Task name is required' });
@@ -62,6 +62,8 @@ const createTask = async (req, res, next) => {
       progress: numericProgress,
       ...(taskDuration && { duration: taskDuration }),
       status: taskStatus,
+      dueDate: dueDate ? new Date(dueDate) : null,
+      reminderSent: false,
     });
 
     return res.status(201).json({
@@ -138,7 +140,7 @@ const updateTask = async (req, res, next) => {
       });
     }
 
-    const { taskName, description, progress, duration, status } = req.body;
+    const { taskName, description, progress, duration, status, dueDate } = req.body;
 
     if (taskName !== undefined) {
       if (!taskName.trim()) {
@@ -187,6 +189,14 @@ const updateTask = async (req, res, next) => {
       }
     } else if (task.status === 'Complete') {
       task.progress = 100;
+    }
+
+    if (dueDate !== undefined) {
+      const parsedDueDate = dueDate ? new Date(dueDate) : null;
+      if (task.dueDate?.toString() !== parsedDueDate?.toString()) {
+        task.dueDate = parsedDueDate;
+        task.reminderSent = false; // Reset reminder on new due date
+      }
     }
 
     if (duration !== undefined && typeof duration === 'object') {
@@ -325,6 +335,19 @@ const getTaskStats = async (req, res, next) => {
   }
 };
 
+// @desc    Trigger reminder check
+// @route   POST /api/tasks/check-reminders
+// @access  Private
+const triggerReminderCheck = async (req, res, next) => {
+  try {
+    const { checkRemindersNow } = require('../services/reminderService');
+    const result = await checkRemindersNow();
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -333,5 +356,5 @@ module.exports = {
   deleteTask,
   updateStatus,
   getTaskStats,
+  triggerReminderCheck,
 };
-

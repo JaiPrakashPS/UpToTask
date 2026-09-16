@@ -8,6 +8,7 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
     taskName: '',
     description: '',
     status: 'Planned',
+    dueDate: '',
   });
 
   const [error, setError] = useState('');
@@ -18,12 +19,14 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
         taskName: task.taskName || '',
         description: task.description || '',
         status: task.status || 'Planned',
+        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       });
     } else {
       setFormData({
         taskName: '',
         description: '',
         status: 'Planned',
+        dueDate: '',
       });
     }
     setError('');
@@ -42,7 +45,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
       return;
     }
 
-    // Automatically calculate progress according to status
     let autoProgress = 0;
     if (formData.status === 'Complete') {
       autoProgress = 100;
@@ -57,6 +59,7 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
       description: formData.description.trim(),
       progress: autoProgress,
       status: formData.status,
+      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
     };
 
     onSave(payload);
@@ -111,6 +114,19 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
               <option value="In Progress">In Progress</option>
               <option value="Complete">Complete</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dueDate">Due Date (Optional)</label>
+            <input
+              id="dueDate"
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+            />
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+              You will receive an automated Gmail reminder 1 day before this deadline.
+            </span>
           </div>
 
           <div className="modal-footer">

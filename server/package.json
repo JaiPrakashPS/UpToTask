@@ -7,7 +7,13 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["mern", "task-management", "express", "jwt", "mongodb"],
+  "keywords": [
+    "mern",
+    "task-management",
+    "express",
+    "jwt",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -17,7 +23,9 @@
     "express": "^4.21.2",
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.13.0"
+    "mongoose": "^8.13.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.10"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

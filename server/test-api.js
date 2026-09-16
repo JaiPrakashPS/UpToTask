@@ -155,15 +155,16 @@ const runTests = async () => {
     const meRes = await request('GET', '/api/auth/me', null, tokenUser1);
     console.log('[Test 9] Protected /api/auth/me:', meRes.status === 200 && meRes.body.user.email === uniqueEmail1 ? 'PASS' : 'FAIL');
 
-    // 10. Create Task without duration
+    // 10. Create Task with dueDate (due in 18 hours)
     const taskData = {
       taskName: 'Complete MERN Project',
       description: 'Build and deploy the task management application.',
       progress: 60,
       status: 'In Progress',
+      dueDate: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
     };
     const createTaskRes = await request('POST', '/api/tasks', taskData, tokenUser1);
-    console.log('[Test 10] Create Task (clean minimal):', createTaskRes.status === 201 && createTaskRes.body.task._id ? 'PASS' : 'FAIL');
+    console.log('[Test 10] Create Task with Due Date:', createTaskRes.status === 201 && createTaskRes.body.task.dueDate ? 'PASS' : 'FAIL');
     createdTaskId = createTaskRes.body.task._id;
 
     const getTasksRes = await request('GET', '/api/tasks', null, tokenUser1);
@@ -172,6 +173,10 @@ const runTests = async () => {
     // 11b. Task statistics endpoint
     const statsRes = await request('GET', '/api/tasks/stats', null, tokenUser1);
     console.log('[Test 11b] Task Statistics Endpoint:', statsRes.status === 200 && statsRes.body.stats.total === 1 ? 'PASS' : 'FAIL');
+
+    // 11c. Reminder check endpoint (tests 1-day email reminder trigger)
+    const reminderRes = await request('POST', '/api/tasks/check-reminders', {}, tokenUser1);
+    console.log('[Test 11c] Reminder Check Trigger (1-day notice):', reminderRes.status === 200 && reminderRes.body.success ? 'PASS' : 'FAIL');
 
     // 12. Create User 2 to test data isolation
     const uniqueEmail2 = `user2_${Date.now()}@example.com`;
