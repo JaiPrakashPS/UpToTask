@@ -5,8 +5,8 @@ let transporter = null;
 const getTransporter = () => {
   if (transporter) return transporter;
 
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
+  const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
+  const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : '';
 
   if (emailUser && emailPass) {
     transporter = nodemailer.createTransport({

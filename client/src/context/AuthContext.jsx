@@ -10,14 +10,24 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize auth state from localStorage and verify with server
   useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('uptotask_token');
+      localStorage.removeItem('uptotask_user');
+    };
+
+    window.addEventListener('uptotask_unauthorized', handleUnauthorized);
+
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('uptotask_token');
       const storedUser = localStorage.getItem('uptotask_user');
 
       if (storedToken && storedUser) {
-        setToken(storedToken);
         try {
           setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+
           // Verify with backend
           const res = await api.get('/auth/me');
           if (res.data.success && res.data.user) {
@@ -26,13 +36,17 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.warn('[Auth] Session validation failed or expired:', err.message);
-          logout();
+          handleUnauthorized();
         }
       }
       setLoading(false);
     };
 
     initializeAuth();
+
+    return () => {
+      window.removeEventListener('uptotask_unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (email, password) => {

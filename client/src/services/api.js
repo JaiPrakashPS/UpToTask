@@ -24,10 +24,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // If unauthorized, clear saved token
-      if (localStorage.getItem('uptotask_token')) {
-        localStorage.removeItem('uptotask_token');
-        localStorage.removeItem('uptotask_user');
+      localStorage.removeItem('uptotask_token');
+      localStorage.removeItem('uptotask_user');
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('uptotask_unauthorized'));
       }
     }
     return Promise.reject(error);
