@@ -13,8 +13,12 @@ connectDB();
 const app = express();
 
 // Middleware
+const allowedOrigins = process.env.CLIENT_URL
+  ? [process.env.CLIENT_URL, 'http://localhost:5173']
+  : '*';
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json());
@@ -33,6 +37,14 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
+// Root endpoint for API inspection
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'UpToTask Backend API is running.',
+    health: '/api/health',
+  });
+});
+
 // 404 Handler for undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -46,14 +58,16 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`[UpToTask Server] Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`[UpToTask Server] Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error(`[Unhandled Rejection Error]: ${err.message}`);
-  server.close(() => process.exit(1));
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => {
+    console.error(`[Unhandled Rejection Error]: ${err.message}`);
+    server.close(() => process.exit(1));
+  });
+}
 
 module.exports = app;
