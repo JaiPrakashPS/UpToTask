@@ -243,12 +243,6 @@ Both the frontend and backend are configured for zero-configuration deployment o
 
 ---
 
-## Documentation
-
-Full documentation is available in two formats within the repository:
-1. **Markdown**: [`DOCUMENTATION.md`](./DOCUMENTATION.md)
-2. **Microsoft Word**: [`UpToTask_Documentation.docx`](./UpToTask_Documentation.docx)
-
 ---
 
 ## License
