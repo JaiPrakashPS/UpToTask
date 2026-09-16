@@ -24,30 +24,6 @@ const createTask = async (req, res, next) => {
       });
     }
 
-    // Validate duration
-    if (!duration || typeof duration !== 'object') {
-      return res.status(400).json({
-        success: false,
-        message: 'Duration is required with value and unit',
-      });
-    }
-
-    const durationValue = Number(duration.value);
-    if (isNaN(durationValue) || durationValue <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Duration value must be a positive number',
-      });
-    }
-
-    const validUnits = ['Minutes', 'Hours', 'Days'];
-    if (!duration.unit || !validUnits.includes(duration.unit)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Duration unit must be Minutes, Hours, or Days',
-      });
-    }
-
     // Validate status
     const taskStatus = status || 'Planned';
     const validStatuses = ['Planned', 'In Progress', 'Complete'];
@@ -63,15 +39,24 @@ const createTask = async (req, res, next) => {
       numericProgress = 100;
     }
 
+    // Optional duration handling
+    let taskDuration = undefined;
+    if (duration && typeof duration === 'object' && duration.value) {
+      const durationVal = Number(duration.value);
+      if (!isNaN(durationVal) && durationVal > 0) {
+        taskDuration = {
+          value: durationVal,
+          unit: duration.unit || 'Hours',
+        };
+      }
+    }
+
     const task = await Task.create({
       userId: req.user._id,
       taskName: taskName.trim(),
       description: description.trim(),
       progress: numericProgress,
-      duration: {
-        value: durationValue,
-        unit: duration.unit,
-      },
+      ...(taskDuration && { duration: taskDuration }),
       status: taskStatus,
     });
 
@@ -187,36 +172,21 @@ const updateTask = async (req, res, next) => {
       task.progress = numericProgress;
     }
 
-    // Auto-adjust progress to 100% if status was updated to Complete and progress wasn't explicitly set to something else
+    // Auto-adjust progress to 100% if status was updated to Complete
     if (task.status === 'Complete' && (progress === undefined || Number(progress) === 100)) {
       task.progress = 100;
     }
 
-    if (duration !== undefined) {
-      if (typeof duration !== 'object') {
-        return res.status(400).json({
-          success: false,
-          message: 'Duration must be an object with value and unit',
-        });
-      }
+    if (duration !== undefined && typeof duration === 'object') {
       if (duration.value !== undefined) {
         const val = Number(duration.value);
-        if (isNaN(val) || val <= 0) {
-          return res.status(400).json({
-            success: false,
-            message: 'Duration value must be a positive number',
-          });
+        if (!isNaN(val) && val > 0) {
+          if (!task.duration) task.duration = {};
+          task.duration.value = val;
         }
-        task.duration.value = val;
       }
       if (duration.unit !== undefined) {
-        const validUnits = ['Minutes', 'Hours', 'Days'];
-        if (!validUnits.includes(duration.unit)) {
-          return res.status(400).json({
-            success: false,
-            message: 'Duration unit must be Minutes, Hours, or Days',
-          });
-        }
+        if (!task.duration) task.duration = {};
         task.duration.unit = duration.unit;
       }
     }

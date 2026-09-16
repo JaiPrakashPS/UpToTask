@@ -8,8 +8,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
     taskName: '',
     description: '',
     progress: 0,
-    durationValue: 1,
-    durationUnit: 'Hours',
     status: 'Planned',
   });
 
@@ -21,8 +19,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
         taskName: task.taskName || '',
         description: task.description || '',
         progress: task.progress !== undefined ? task.progress : 0,
-        durationValue: task.duration?.value || 1,
-        durationUnit: task.duration?.unit || 'Hours',
         status: task.status || 'Planned',
       });
     } else {
@@ -30,8 +26,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
         taskName: '',
         description: '',
         progress: 0,
-        durationValue: 2,
-        durationUnit: 'Hours',
         status: 'Planned',
       });
     }
@@ -82,19 +76,11 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
       setError('Description is required');
       return;
     }
-    if (formData.durationValue <= 0) {
-      setError('Duration must be greater than 0');
-      return;
-    }
 
     const payload = {
       taskName: formData.taskName.trim(),
       description: formData.description.trim(),
       progress: Number(formData.progress),
-      duration: {
-        value: Number(formData.durationValue),
-        unit: formData.durationUnit,
-      },
       status: formData.status,
     };
 
@@ -161,33 +147,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
                 onChange={(e) => handleProgressChange(e.target.value)}
                 style={{ width: '70px', padding: '6px 8px', textAlign: 'center' }}
               />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="durationValue">Duration *</label>
-              <input
-                id="durationValue"
-                type="number"
-                min="1"
-                value={formData.durationValue}
-                onChange={(e) => setFormData({ ...formData, durationValue: Math.max(1, Number(e.target.value)) })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="durationUnit">Unit *</label>
-              <select
-                id="durationUnit"
-                value={formData.durationUnit}
-                onChange={(e) => setFormData({ ...formData, durationUnit: e.target.value })}
-              >
-                <option value="Minutes">Minutes</option>
-                <option value="Hours">Hours</option>
-                <option value="Days">Days</option>
-              </select>
             </div>
           </div>
 

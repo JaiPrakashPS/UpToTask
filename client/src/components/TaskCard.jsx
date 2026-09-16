@@ -1,13 +1,7 @@
 import React from 'react';
-import { Edit3, Trash2, Clock, CheckCircle2 } from 'lucide-react';
+import { Edit3, Trash2 } from 'lucide-react';
 
 const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
-  // Generate ASCII block progress bar (20 characters total)
-  const totalBlocks = 20;
-  const filledBlocks = Math.round(((task.progress || 0) / 100) * totalBlocks);
-  const emptyBlocks = totalBlocks - filledBlocks;
-  const blockString = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
-
   const getStatusClass = (status) => {
     switch (status) {
       case 'Planned':
@@ -40,33 +34,17 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
 
       <p className="task-card-desc">{task.description}</p>
 
-      {/* Progress Section */}
-      <div className="progress-section">
-        <div className="progress-header">
-          <span style={{ color: 'var(--text-secondary)' }}>Progress</span>
-          <span className="progress-pct">{task.progress}%</span>
-        </div>
-        <div className="progress-track">
-          <div
-            className="progress-fill"
-            style={{ width: `${Math.min(Math.max(task.progress || 0, 0), 100)}%` }}
-          />
-        </div>
-        <div className="progress-block-rep" title={`${task.progress}%`}>
-          {blockString}
-        </div>
-      </div>
-
       {/* Footer / Meta */}
       <div className="task-card-footer">
         <div className="task-meta">
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-            <Clock size={14} />
-            Duration: <strong className="task-duration">{task.duration?.value} {task.duration?.unit}</strong>
-          </span>
           <span>
             Status: <span style={{ fontWeight: 600 }}>{task.status}</span>
           </span>
+          {task.progress !== undefined && (
+            <span>
+              Progress: <span style={{ fontWeight: 600 }}>{task.progress}%</span>
+            </span>
+          )}
         </div>
 
         <div className="task-actions">

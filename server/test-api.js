@@ -1,5 +1,6 @@
 // Comprehensive Automated API Tests for UpToTask Backend
 const http = require('http');
+const { spawn } = require('child_process');
 
 const request = (method, path, data = null, token = null) => {
   return new Promise((resolve, reject) => {
@@ -16,7 +17,7 @@ const request = (method, path, data = null, token = null) => {
 
     const req = http.request(
       {
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         port: 5000,
         path,
         method,
@@ -43,9 +44,47 @@ const request = (method, path, data = null, token = null) => {
   });
 };
 
+const isServerListening = () => {
+  return new Promise((resolve) => {
+    const req = http.get('http://127.0.0.1:5000/api/health', (res) => {
+      resolve(true);
+    });
+    req.on('error', () => resolve(false));
+    req.setTimeout(1000, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+};
+
 const runTests = async () => {
   console.log('--- STARTING UPTO TASK BACKEND API TESTS ---');
   let tokenUser1, tokenUser2, createdTaskId;
+  let serverProcess = null;
+
+  // Check if server is already running
+  const isRunning = await isServerListening();
+  if (!isRunning) {
+    console.log('[Info] Server is not running on port 5000. Launching temporary server for tests...');
+    serverProcess = spawn('node', ['server.js'], { cwd: __dirname, stdio: 'ignore' });
+    // Wait for server to boot
+    for (let i = 0; i < 15; i++) {
+      await new Promise((r) => setTimeout(r, 400));
+      if (await isServerListening()) {
+        console.log('[Info] Server started successfully for testing.');
+        break;
+      }
+    }
+  } else {
+    console.log('[Info] Found active server listening on port 5000.');
+  }
+
+  const cleanup = () => {
+    if (serverProcess) {
+      console.log('[Info] Stopping temporary test server...');
+      serverProcess.kill();
+    }
+  };
 
   try {
     // 1. Health check
@@ -116,19 +155,15 @@ const runTests = async () => {
     const meRes = await request('GET', '/api/auth/me', null, tokenUser1);
     console.log('[Test 9] Protected /api/auth/me:', meRes.status === 200 && meRes.body.user.email === uniqueEmail1 ? 'PASS' : 'FAIL');
 
-    // 10. Create Task - User 1
+    // 10. Create Task without duration
     const taskData = {
       taskName: 'Complete MERN Project',
       description: 'Build and deploy the task management application.',
       progress: 60,
-      duration: {
-        value: 3,
-        unit: 'Hours',
-      },
       status: 'In Progress',
     };
     const createTaskRes = await request('POST', '/api/tasks', taskData, tokenUser1);
-    console.log('[Test 10] Create Task:', createTaskRes.status === 201 && createTaskRes.body.task._id ? 'PASS' : 'FAIL');
+    console.log('[Test 10] Create Task (clean minimal):', createTaskRes.status === 201 && createTaskRes.body.task._id ? 'PASS' : 'FAIL');
     createdTaskId = createTaskRes.body.task._id;
 
     // 11. Get Tasks for User 1
@@ -157,10 +192,6 @@ const runTests = async () => {
       taskName: 'Complete MERN Project (Updated)',
       description: 'Build, test, and deploy with full documentation.',
       progress: 80,
-      duration: {
-        value: 4,
-        unit: 'Hours',
-      },
       status: 'In Progress',
     }, tokenUser1);
     console.log('[Test 14] Update Task:', updateRes.status === 200 && updateRes.body.task.progress === 80 ? 'PASS' : 'FAIL');
@@ -180,9 +211,11 @@ const runTests = async () => {
     console.log('[Test 17] Deleted task returns 404:', checkDeletedRes.status === 404 ? 'PASS' : 'FAIL');
 
     console.log('--- ALL BACKEND TESTS COMPLETED SUCCESSFULLY ---');
+    cleanup();
     process.exit(0);
   } catch (err) {
     console.error('Test execution failed:', err);
+    cleanup();
     process.exit(1);
   }
 };

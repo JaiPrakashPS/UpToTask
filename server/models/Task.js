@@ -20,7 +20,6 @@ const taskSchema = new mongoose.Schema(
     },
     progress: {
       type: Number,
-      required: [true, 'Progress is required'],
       min: [0, 'Progress cannot be less than 0%'],
       max: [100, 'Progress cannot exceed 100%'],
       default: 0,
@@ -28,17 +27,10 @@ const taskSchema = new mongoose.Schema(
     duration: {
       value: {
         type: Number,
-        required: [true, 'Duration value is required'],
-        min: [1, 'Duration value must be at least 1'],
       },
       unit: {
         type: String,
-        required: [true, 'Duration unit is required'],
-        enum: {
-          values: ['Minutes', 'Hours', 'Days'],
-          message: '{VALUE} is not a supported duration unit. Choose Minutes, Hours, or Days.',
-        },
-        default: 'Hours',
+        enum: ['Minutes', 'Hours', 'Days'],
       },
     },
     status: {
