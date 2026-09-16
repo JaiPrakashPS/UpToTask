@@ -34,14 +34,18 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
 
   if (!isOpen) return null;
 
+  // When status changes, automatically sync progress
   const handleStatusChange = (newStatus) => {
     let newProgress = formData.progress;
     if (newStatus === 'Complete') {
       newProgress = 100;
-    } else if (newStatus === 'Planned' && formData.progress === 100) {
+    } else if (newStatus === 'Planned') {
       newProgress = 0;
-    } else if (newStatus === 'In Progress' && (formData.progress === 0 || formData.progress === 100)) {
-      newProgress = 50;
+    } else if (newStatus === 'In Progress') {
+      // If was 0 or 100, set to 50% as sensible in-progress default
+      if (formData.progress === 0 || formData.progress === 100) {
+        newProgress = 50;
+      }
     }
 
     setFormData((prev) => ({
@@ -51,14 +55,18 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
     }));
   };
 
+  // When progress slider is moved in edit mode, sync status
   const handleProgressChange = (newProgress) => {
     const val = Math.min(Math.max(Number(newProgress), 0), 100);
     let newStatus = formData.status;
     if (val === 100) {
       newStatus = 'Complete';
-    } else if (val > 0 && formData.status === 'Planned') {
+    } else if (val === 0) {
+      newStatus = 'Planned';
+    } else {
       newStatus = 'In Progress';
     }
+
     setFormData((prev) => ({
       ...prev,
       progress: val,
@@ -77,10 +85,18 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
       return;
     }
 
+    // Determine progress on create vs edit
+    let finalProgress = Number(formData.progress);
+    if (!isEditing) {
+      if (formData.status === 'Complete') finalProgress = 100;
+      else if (formData.status === 'In Progress') finalProgress = 50;
+      else finalProgress = 0;
+    }
+
     const payload = {
       taskName: formData.taskName.trim(),
       description: formData.description.trim(),
-      progress: Number(formData.progress),
+      progress: finalProgress,
       status: formData.status,
     };
 
@@ -126,31 +142,6 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
           </div>
 
           <div className="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label htmlFor="progress">Progress: {formData.progress}%</label>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                id="progress"
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={formData.progress}
-                onChange={(e) => handleProgressChange(e.target.value)}
-              />
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.progress}
-                onChange={(e) => handleProgressChange(e.target.value)}
-                style={{ width: '70px', padding: '6px 8px', textAlign: 'center' }}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
             <label htmlFor="status">Status *</label>
             <select
               id="status"
@@ -162,6 +153,39 @@ const TaskModal = ({ isOpen, onClose, onSave, task = null, isSaving = false }) =
               <option value="Complete">Complete</option>
             </select>
           </div>
+
+          {/* Progress bar/slider is ONLY shown in Edit mode and automatically adapts to status */}
+          {isEditing && (
+            <div className="form-group" style={{ marginTop: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label htmlFor="progress">
+                  Progress: <strong>{formData.progress}%</strong>
+                </label>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Auto-syncs with status ({formData.status})
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input
+                  id="progress"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={formData.progress}
+                  onChange={(e) => handleProgressChange(e.target.value)}
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.progress}
+                  onChange={(e) => handleProgressChange(e.target.value)}
+                  style={{ width: '70px', padding: '6px 8px', textAlign: 'center' }}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="modal-footer">
             <button

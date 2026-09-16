@@ -15,15 +15,6 @@ const createTask = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Description is required' });
     }
 
-    // Default or normalize progress
-    let numericProgress = progress !== undefined ? Number(progress) : 0;
-    if (isNaN(numericProgress) || numericProgress < 0 || numericProgress > 100) {
-      return res.status(400).json({
-        success: false,
-        message: 'Progress must be a number between 0 and 100',
-      });
-    }
-
     // Validate status
     const taskStatus = status || 'Planned';
     const validStatuses = ['Planned', 'In Progress', 'Complete'];
@@ -34,9 +25,22 @@ const createTask = async (req, res, next) => {
       });
     }
 
-    // Auto-adjust progress if status is Complete
-    if (taskStatus === 'Complete') {
-      numericProgress = 100;
+    // Derive or normalize progress based on status if not explicitly given
+    let numericProgress = progress !== undefined ? Number(progress) : undefined;
+    if (numericProgress === undefined || isNaN(numericProgress)) {
+      if (taskStatus === 'Complete') numericProgress = 100;
+      else if (taskStatus === 'In Progress') numericProgress = 50;
+      else numericProgress = 0;
+    } else {
+      if (numericProgress < 0 || numericProgress > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Progress must be a number between 0 and 100',
+        });
+      }
+      if (taskStatus === 'Complete') {
+        numericProgress = 100;
+      }
     }
 
     // Optional duration handling
@@ -172,8 +176,16 @@ const updateTask = async (req, res, next) => {
       task.progress = numericProgress;
     }
 
-    // Auto-adjust progress to 100% if status was updated to Complete
-    if (task.status === 'Complete' && (progress === undefined || Number(progress) === 100)) {
+    // Auto-adjust progress to match status if progress wasn't explicitly modified
+    if (progress === undefined && status !== undefined) {
+      if (task.status === 'Complete') {
+        task.progress = 100;
+      } else if (task.status === 'Planned') {
+        task.progress = 0;
+      } else if (task.status === 'In Progress' && (task.progress === 0 || task.progress === 100)) {
+        task.progress = 50;
+      }
+    } else if (task.status === 'Complete') {
       task.progress = 100;
     }
 
@@ -265,8 +277,12 @@ const updateStatus = async (req, res, next) => {
     task.status = status;
     if (status === 'Complete') {
       task.progress = 100;
-    } else if (status === 'Planned' && task.progress === 100) {
+    } else if (status === 'Planned') {
       task.progress = 0;
+    } else if (status === 'In Progress') {
+      if (task.progress === 0 || task.progress === 100) {
+        task.progress = 50;
+      }
     }
 
     await task.save();
