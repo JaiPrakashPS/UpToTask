@@ -4,13 +4,14 @@ import Navbar from '../components/Navbar';
 import TaskCard from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
 import DeleteModal from '../components/DeleteModal';
-import { Plus, CheckSquare } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal states
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -123,10 +124,15 @@ const Dashboard = () => {
     }
   };
 
-  // Filter tasks
+  // Filter and search tasks
   const filteredTasks = tasks.filter((task) => {
-    if (filter === 'All') return true;
-    return task.status === filter;
+    const matchesFilter = filter === 'All' || task.status === filter;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      (task.taskName && task.taskName.toLowerCase().includes(query)) ||
+      (task.description && task.description.toLowerCase().includes(query));
+    return matchesFilter && matchesSearch;
   });
 
   return (
@@ -149,17 +155,76 @@ const Dashboard = () => {
         {/* Global Error Notice */}
         {error && <div className="alert-error">{error}</div>}
 
-        {/* Filters */}
-        <div className="dashboard-filters">
-          {['All', 'Planned', 'In Progress', 'Complete'].map((st) => (
-            <button
-              key={st}
-              className={`filter-btn ${filter === st ? 'active' : ''}`}
-              onClick={() => setFilter(st)}
-            >
-              {st} {st !== 'All' ? `(${tasks.filter((t) => t.status === st).length})` : `(${tasks.length})`}
-            </button>
-          ))}
+        {/* Search Bar & Filters Row */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+            marginBottom: '24px',
+          }}
+        >
+          {/* Search Input */}
+          <div style={{ position: 'relative', width: '100%', maxWidth: '450px' }}>
+            <Search
+              size={17}
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-secondary)',
+                pointerEvents: 'none',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                paddingLeft: '38px',
+                paddingRight: searchQuery ? '36px' : '12px',
+                borderRadius: 'var(--radius-sm)',
+                height: '40px',
+                fontSize: '0.9rem',
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter Badges */}
+          <div className="dashboard-filters" style={{ marginBottom: 0 }}>
+            {['All', 'Planned', 'In Progress', 'Complete'].map((st) => (
+              <button
+                key={st}
+                className={`filter-btn ${filter === st ? 'active' : ''}`}
+                onClick={() => setFilter(st)}
+              >
+                {st} {st !== 'All' ? `(${tasks.filter((t) => t.status === st).length})` : `(${tasks.length})`}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Content Body */}
@@ -168,14 +233,32 @@ const Dashboard = () => {
             Loading tasks...
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="empty-state">
-            <h3>No tasks yet.</h3>
-            <p>Create your first task to start tracking your progress.</p>
-            <button onClick={handleOpenCreate} className="btn-primary">
-              <Plus size={16} />
-              Create Task
-            </button>
-          </div>
+          searchQuery.trim() ? (
+            <div className="empty-state">
+              <h3>No matching tasks found</h3>
+              <p>No tasks found matching "{searchQuery}". Try a different keyword.</p>
+              <button onClick={() => setSearchQuery('')} className="btn-secondary">
+                Clear Search
+              </button>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="empty-state">
+              <h3>No tasks yet.</h3>
+              <p>Create your first task to start tracking your progress.</p>
+              <button onClick={handleOpenCreate} className="btn-primary">
+                <Plus size={16} />
+                Create Task
+              </button>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>No {filter} tasks</h3>
+              <p>You have no tasks in the "{filter}" status.</p>
+              <button onClick={() => setFilter('All')} className="btn-secondary">
+                View All Tasks
+              </button>
+            </div>
+          )
         ) : (
           <div className="task-list">
             {filteredTasks.map((task) => (

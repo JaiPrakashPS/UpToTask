@@ -297,6 +297,34 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Get task statistics for the logged-in user
+// @route   GET /api/tasks/stats
+// @access  Private
+const getTaskStats = async (req, res, next) => {
+  try {
+    const tasks = await Task.find({ userId: req.user._id });
+
+    const total = tasks.length;
+    const completed = tasks.filter((t) => t.status === 'Complete').length;
+    const inProgress = tasks.filter((t) => t.status === 'In Progress').length;
+    const planned = tasks.filter((t) => t.status === 'Planned').length;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        total,
+        completed,
+        inProgress,
+        planned,
+        completionRate,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -304,4 +332,6 @@ module.exports = {
   updateTask,
   deleteTask,
   updateStatus,
+  getTaskStats,
 };
+

@@ -166,9 +166,12 @@ const runTests = async () => {
     console.log('[Test 10] Create Task (clean minimal):', createTaskRes.status === 201 && createTaskRes.body.task._id ? 'PASS' : 'FAIL');
     createdTaskId = createTaskRes.body.task._id;
 
-    // 11. Get Tasks for User 1
     const getTasksRes = await request('GET', '/api/tasks', null, tokenUser1);
     console.log('[Test 11] Get User Tasks:', getTasksRes.status === 200 && getTasksRes.body.tasks.length === 1 ? 'PASS' : 'FAIL');
+
+    // 11b. Task statistics endpoint
+    const statsRes = await request('GET', '/api/tasks/stats', null, tokenUser1);
+    console.log('[Test 11b] Task Statistics Endpoint:', statsRes.status === 200 && statsRes.body.stats.total === 1 ? 'PASS' : 'FAIL');
 
     // 12. Create User 2 to test data isolation
     const uniqueEmail2 = `user2_${Date.now()}@example.com`;
